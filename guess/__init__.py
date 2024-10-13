@@ -4,7 +4,6 @@ from repository import dynamodb, hash, sqlite, postgres
 from opentelemetry.instrumentation.flask import FlaskInstrumentor
 import pathlib
 
-
 def create_app(config=None):
     app = Flask(__name__)
     app.config.from_prefixed_env()
@@ -29,6 +28,7 @@ def create_app(config=None):
             db_string = (f"dbname={app.config.get('DB_NAME')} user={app.config.get('DB_USER')}"
                          f" password={app.config.get('DB_PASSWORD')} host={app.config.get('DB_HOST')}")
             try:
+                print(db_string)
                 app.db = postgres.PostgresRepository(db_string)
             except Exception as e:
                 app.logger.error(f"Error connecting to database: {e}")

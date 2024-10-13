@@ -7,7 +7,6 @@ from .discover import Guess, WrongAttempt
 
 game_bp = Blueprint('game_bp', __name__)
 
-
 def hash_password(password, salt):
     """Hash a password with the given salt."""
     hasher = hashlib.sha256()
@@ -40,3 +39,7 @@ def guess(game_id):
     except KeyError:
         current_app.logger.error(f"Game {game_id} not found")
         return jsonify({'error': 'Game not found'}), 404
+
+@game_bp.route('/', methods=['GET'])
+def health():
+    return "Hello, World!"
