@@ -1,155 +1,76 @@
-Aqui está um exemplo de um arquivo `README.md` para o seu jogo:
-
----
-
-# Jogo de Adivinhação com Flask
+# Jogo de Adivinhação
 
 Este é um simples jogo de adivinhação desenvolvido utilizando o framework Flask. O jogador deve adivinhar uma senha criada aleatoriamente, e o sistema fornecerá feedback sobre o número de letras corretas e suas respectivas posições.
 
-## Funcionalidades
+## Pré-requisitos
 
-- Criação de um novo jogo com uma senha fornecida pelo usuário.
-- Adivinhe a senha e receba feedback se as letras estão corretas e/ou em posições corretas.
-- As senhas são armazenadas  utilizando base64.
-- As adivinhações incorretas retornam uma mensagem com dicas.
+Para iniciar esse projeto, é necessário ter:
+
+- Docker
+- Docker Compose
+- Git
   
-## Requisitos
+## Utilizando a aplicação
 
-- Python 3.8+
-- Flask
-- Um banco de dados local (ou um mecanismo de armazenamento configurado em `current_app.db`)
-- node 18.17.0
+A primeira etapa para a utilização é realizar o clone do projeto usando o seguinte comando:
 
-## Instalação
+```
+git clone $link
+```
+Após essa etapa, precisará navegar para a pasta que foi criada e iniciar o projeto utilizando o seguinte comando:
 
-1. Clone o repositório:
+```
+docker compose up
+```
 
-   ```bash
-   git clone https://github.com/fams/guess_game.git
-   cd guess-game
-   ```
+Por padrão, a aplicação está configurada para ser iniciada na porta 80 (http://localhost/) do localhost, então <b> é extremamente importante garantir que a porta 80 esteja disponível para a utilização</b>.
 
-2. Crie um ambiente virtual e ative-o:
+Para finalizar a execução do container, rode o seguinte comando:
 
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # Linux/Mac
-   venv\Scripts\activate  # Windows
-   ```
+```
+docker compose down
+```
 
-3. Instale as dependências:
+## Estrutura
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+O arquivo docker-compose.yml possui todos os serviços necessários para iniciar a aplicação. Nele, para todos os serviços, foi definida a seguinte configuração:
 
-4. Configure o banco de dados com as variáveis de ambiente no arquivo start-backend.sh
-    1. Para sqlite
+```
+restart: always
+```
 
-        ```bash
-            export FLASK_APP="run.py"
-            export FLASK_DB_TYPE="sqlite"            # Use SQLITE
-            export FLASK_DB_PATH="caminho/db.sqlite" # caminho do banco
-        ```
+Ela tem o intuito de aumentar a resiliência da aplicação, fazendo com que um serviço seja reiniciado caso ocorra alguma falha.
 
-    2. Para Postgres
+Foram criados dois arquivos Dockerfile separados (um para o frontend e outro para o backend) com o intuito de facilitar o processo de atualizações.
 
-        ```bash
-            export FLASK_APP="run.py"
-            export FLASK_DB_TYPE="postgres"       # Use postgres
-            export FLASK_DB_USER="postgres"       # Usuário do banco
-            export FLASK_DB_NAME="postgres"       # Nome do Banco
-            export FLASK_DB_PASSWORD="secretpass" # Senha do banco
-            export FLASK_DB_HOST="localhost"      # Hostname
-            export FLASK_DB_PORT="5432"           # Porta
-        ```
+#### Banco de dados
+A aplicação utiliza o <b> sqlite </b> como banco e, para isso, foi criada uma pasta chamada database, que possui um arquivo database.db que irá persistir os dados recebidos.
 
-    3. Para DynamoDB
+#### NGINX
+O serviço NGINX foi criado para atuar como o balanceador de carga, fazendo a distribuição das requisições para o frontend e o backend da aplicação.
 
-        ```bash
-        export FLASK_APP="run.py"
-        export FLASK_DB_TYPE="dynamodb"       # Use postgres
-        export AWS_DEFAULT_REGION="us-east-1" # AWS region
-        export AWS_ACCESS_KEY_ID="FAKEACCESSKEY123456" 
-        export AWS_SECRET_ACCESS_KEY="FakeSecretAccessKey987654321"
-        export AWS_SESSION_TOKEN="FakeSessionTokenABCDEFGHIJKLMNOPQRSTUVXYZ1234567890"
-        ```
+Foi criada uma pasta chamada nginx, que possui o arquivo de configuração para esse serviço (default.conf).
 
-5. Execute o backend
+#### Volume
 
-   ```bash
-   ./start-backend.sh &
-   ```
+Devido à configuração de volume no arquivo docker-compose.yml, derrubar o container não fará com que a perda de dados criados durante a utilização da aplicação ocorra, ou seja, mesmo derrubando o container, na próxima execução, os dados sobre os jogos criados serão persistidos.
 
-## Frontend
-No diretorio de frontend
+## Balanceamento de carga
+Como informado na seção de estrutura, a aplicação utiliza o NGINX, que irá direcionar a rota home (/) para o frontend e o backend será acessado utilizando a rota /api.
 
-1. Instale o node com o nvm. Se não tiver o nvm instalado, siga o [tutorial](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating)
+Exemplo de rota para o backend:
+- /api/create
 
-    ```bash
-    nvm install 18.17.0
-    nvm use 18.17.0
-    # Habilite o yarn
-    corepack enable
-    ```
+## Atualização da aplicação
+Para realizar qualquer tipo de atualização na aplicação, seja ela em configurações de balanceamento de carga, backend, frontend, Dockerfile ou docker-compose.yml, primeiro garanta que o container não está em execução rodando o comando:
 
-2. Instale as dependências do node com o npm:
+```
+docker compose down
+```
 
-    ```bash
-    npm install
-    ```
-
-3. Exporte a url onde está executando o backend e execute o backend.
-
-   ```bash
-    export REACT_APP_BACKEND_URL=http://localhost:5000
-    yarn start
-   ```
-
-## Como Jogar
-
-### 1. Criar um novo jogo
-
-Acesse a url do frontend http://localhost:3000
-
-Digite uma frase secreta
-
-Envie
-
-Salve o game-id
+Realize as alterações necessárias e suba o container novamente utilizando:
 
 
-### 2. Adivinhar a senha
-
-Acesse a url do frontend http://localhost:3000
-
-Vá para o endponint breaker
-
-entre com o game_id que foi gerado pelo Creator
-
-Tente adivinhar
-
-## Estrutura do Código
-
-### Rotas:
-
-- **`/create`**: Cria um novo jogo. Armazena a senha codificada em base64 e retorna um `game_id`.
-- **`/guess/<game_id>`**: Permite ao usuário adivinhar a senha. Compara a adivinhação com a senha armazenada e retorna o resultado.
-
-### Classes Importantes:
-
-- **`Guess`**: Classe responsável por gerenciar a lógica de comparação entre a senha e a tentativa do jogador.
-- **`WrongAttempt`**: Exceção personalizada que é levantada quando a tentativa está incorreta.
-
-
-
-## Melhorias Futuras
-
-- Implementar autenticação de usuário para salvar e carregar jogos.
-- Adicionar limite de tentativas.
-- Melhorar a interface de feedback para as tentativas de adivinhação.
-
-## Licença
-
-Este projeto está licenciado sob a [MIT License](LICENSE).
-
+```
+docker compose up
+```
