@@ -15,7 +15,7 @@ Para iniciar esse projeto, é necessário ter:
 A primeira etapa para a utilização é realizar o clone do projeto usando o seguinte comando:
 
 ```
-git clone $link
+git clone git@github.com:rafaelongo45/guess_game.git
 ```
 Após essa etapa, precisará navegar para a pasta que foi criada e iniciar o projeto utilizando o seguinte comando:
 
